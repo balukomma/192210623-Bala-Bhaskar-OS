@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#define BUFFER_SIZE 1024
+
+int main() {
+    int sourceFile, targetFile;
+    ssize_t bytesRead;
+    char buffer[BUFFER_SIZE];
+
+    // Open the source file for reading
+    sourceFile = open("source.txt", O_RDONLY);
+    if (sourceFile == -1) {
+        perror("Error opening source file");
+        return 1;
+    }
+
+    // Create or open the target file for writing
+    targetFile = open("target.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (targetFile == -1) {
+        perror("Error opening target file");
+        close(sourceFile);
+        return 1;
+    }
+
+    // Read from the source file and write to the target file
+    while ((bytesRead = read(sourceFile, buffer, BUFFER_SIZE)) > 0) {
+        if (write(targetFile, buffer, bytesRead) != bytesRead) {
+            perror("Error writing to target file");
+            close(sourceFile);
+            close(targetFile);
+            return 1;
+        }
+    }
+
+    // Close the files
+    close(sourceFile);
+    close(targetFile);
+
+    printf("File copied successfully\n");
+
+    return 0;
+}
